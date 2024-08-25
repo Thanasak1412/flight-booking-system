@@ -1,33 +1,62 @@
+'use server';
+
+import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import { jwtDecode } from 'jwt-decode';
 
 import axios from '@/utils/axios';
-import { API_PATH } from '@/routes/paths';
-import { UserRole } from '@/types/user';
+import { API_PATH, PATH_AFTER_LOGIN } from '@/routes/paths';
+import type { UserRole } from '@/types/user';
 
-export async function login(email: string, password: string): Promise<any> {
+const FormState = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export async function authenticate(
+  _prevState: string | null | undefined,
+  formData: FormData
+): Promise<string | undefined> {
+  const validatedFields = FormState.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
+
+  if (!validatedFields.success) {
+    return 'Invalid credentials';
+  }
+
+  const { email, password } = validatedFields.data;
+
+  let isAuthenticate = false;
   try {
-    const { status, data } = await axios.post<{ token: string }>(
-      API_PATH.login,
-      {
-        email,
-        password,
-      }
-    );
+    const { status, data } = await axios.post<{
+      token: string;
+    }>(API_PATH.login, {
+      email,
+      password,
+    });
 
-    if (status === 201 && data.token) {
+    if (status === 200 && data.token) {
+      const { id: userId } = jwtDecode<{ id: string; role: UserRole }>(
+        data.token
+      );
+
       const cookieStore = cookies();
 
-      const decodedUser = jwtDecode<{ id: string; role: UserRole }>(data.token);
-
       cookieStore.set('token', data.token);
-      cookieStore.set('userId', decodedUser.id);
+      cookieStore.set('userId', userId);
 
-      return decodedUser;
+      isAuthenticate = true;
     }
   } catch (error) {
-    console.error('Failed to login: ', error);
+    console.error('error => ', error);
 
-    throw new Error('Failed to login.');
+    return error ? JSON.stringify(error) : 'Failed to sign in';
+  } finally {
+    if (isAuthenticate) {
+      redirect(PATH_AFTER_LOGIN);
+    }
   }
 }

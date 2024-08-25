@@ -10,12 +10,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@heroicons/react": "^2.1.5",
     "@stripe/stripe-js": "^4.3.0",
     "axios": "^1.7.5",
     "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
     "next": "14.2.5",
-    "next-auth": "^5.0.0-beta.20",
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.5.2",

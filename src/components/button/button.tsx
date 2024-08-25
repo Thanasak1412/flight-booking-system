@@ -6,7 +6,7 @@ import { cn } from '@/utils/client';
 type Props = {
   children: React.ReactNode;
   className?: string;
-  handleClick: MouseEventHandler<HTMLButtonElement>;
+  handleClick?: MouseEventHandler<HTMLButtonElement>;
 };
 
 export default function Button({
@@ -16,9 +16,8 @@ export default function Button({
 }: Readonly<Props>) {
   return (
     <button
-      type="button"
       className={cn(
-        'focus:outline-none focus:ring-4 font-medium text-sm px-5 py-2.5 text-center me-2 mb-2',
+        'focus:outline-none focus:ring-4 font-medium text-sm px-5 py-2.5 text-center me-2 mb-2 rounded-lg',
         className
       )}
       onClick={handleClick}
